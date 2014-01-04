@@ -83,7 +83,7 @@ class trade(object):
             self.log.warning(self.rights)
             import sys
             sys.exit('Verify you have input API key and secret.')
-            
+
         info = self.rights.get('info')
         trade = self.rights.get('trade')
         if info:
@@ -97,7 +97,7 @@ class trade(object):
         if not trade:
             self.log.info('API trade rights not enabled. Trading disabled.')
             ## TODO: activate sim mode if trade rights not enabled
-            
+
 
     def update(self):
         '''wrapper, execute a step of trader instance'''
@@ -114,7 +114,7 @@ class trade(object):
             self.signals.updatePlot(self.last)
         self.updateStandingOrders()
         self.killUnfilled()
-        
+
     def determinePosition(self):
         '''determine which pair user is long on, then position from balance'''
         # TODO: do this better.
@@ -137,7 +137,7 @@ class trade(object):
             self.shortPosition = True
         else:
             self.shortPosition = False
-    
+
     def updateLast(self):
         '''update last price and last trade id instance variables'''
         self.last = self.tick.getLast(self.config.pair)
@@ -199,7 +199,7 @@ class trade(object):
             return 0.00001
         else:
             return 0.001
-        
+
     def placeBid(self):
         pair = self.config.pair
         pip = self.getPip()
@@ -372,7 +372,8 @@ class signals(object):
     def __init__(self,configInstance):
         self.config = configInstance
         self.initSignals()
-        self.plot = Plot(self.signalType,self.config.pair,self.config.graphDPI)
+        self.plot = MockPlot(
+            self.signalType,self.config.pair,self.config.graphDPI)
         self.log = helper.Log()
 
     def initSignals(self):
@@ -437,7 +438,7 @@ class signals(object):
         spread = delta*100.0
         print('Signal Spread: %.2f' % (spread))+'%'
         self.log.info('Signal Spread: %.2f' % (spread)+'%')
-                          
+
     def checkSignalConfig(self):
         if self.config.signalType == 'single':
             self.singlePoints()
@@ -477,7 +478,30 @@ class signals(object):
             self.rib3.changeReqPoints(start+step+step)
             log.info('Ribbon start: %s, spacing: %s' %(self.config.ribbonStart,
                                                        self.config.ribbonSpacing))
-                     
+
+
+class MockPlot(object):
+    '''Mock plot to allow headless execution'''
+    def __init__(self,signalType,pair,graphDPI):
+        pass
+
+    def build(self):
+        pass
+
+    def changeDPI(self,DPI):
+        self.DPI = DPI
+
+    def append(self,line,value):
+        '''Append new point to specified line['values'] in toPlot dict'''
+        pass
+
+    def updatePlot(self):
+        pass
+
+    def getYlims(self):
+        pass
+
+
 class Plot(object):
     '''Plot and save graph of moving averages and price'''
     def __init__(self,signalType,pair,graphDPI):
@@ -490,7 +514,7 @@ class Plot(object):
                                'legend.fontsize':'x-small'})
         # create dict with linestyles for each configured line
         self.build()
-        
+
     def build(self):
         self.toPlot = {}
         self.toPlot['price'] = {'label':'Price','color':'k','style':'-'}
@@ -506,7 +530,7 @@ class Plot(object):
 
     def changeDPI(self,DPI):
         self.DPI = DPI
-        
+
     def append(self,line,value):
         '''Append new point to specified line['values'] in toPlot dict'''
         self.toPlot[line].setdefault('values', []).append(value)
@@ -527,7 +551,7 @@ class Plot(object):
             style = self.toPlot[line].get('style')
             #print values,label,color,style
             pylab.plot(values, label=label, color=color, linestyle=style)
-        ylims = self.getYlims() 
+        ylims = self.getYlims()
         pylab.ylim(ylims)
         # labels
         pylab.title("Moving Averages against Price of %s" % self.pair)
@@ -556,5 +580,5 @@ class Plot(object):
         ymin = round(ymin-(ymin*0.001),2)
         ylims = (ymin,ymax)
         return ylims
-    
+
 # Python is awesome

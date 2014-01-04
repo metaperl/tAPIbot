@@ -1,6 +1,9 @@
-#################
-## Eclipse
-#################
+# project files
+
+settings.ini
+Log.log
+
+# Eclipse files
 
 *.pydevproject
 .project
